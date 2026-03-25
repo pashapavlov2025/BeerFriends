@@ -7,6 +7,7 @@ import {
   Text,
   GestureResponderEvent,
 } from 'react-native';
+import { Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useGameStore } from '../store/gameStore';
 import { getBeerById } from '../data/beers';
@@ -31,7 +32,9 @@ export default function BrewButton({ onTapAt }: Props) {
     (e: GestureResponderEvent) => {
       const { locationX, locationY } = e.nativeEvent;
       tap();
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      if (Platform.OS !== 'web') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
       onTapAt(locationX, locationY, effectiveTap);
 
       Animated.sequence([
