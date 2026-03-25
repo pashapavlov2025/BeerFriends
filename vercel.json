@@ -1,3 +1,6 @@
 {
-  "outputDirectory": "dist"
+  "buildCommand": "echo 'skip build'",
+  "installCommand": "echo 'skip install'",
+  "outputDirectory": "dist",
+  "framework": null
 }
