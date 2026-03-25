@@ -1,108 +1,48 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, Component, ErrorInfo, ReactNode } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer } from '@react-navigation/native';
-import { Alert, AppState, AppStateStatus, Platform, View, StyleSheet } from 'react-native';
-import TabNavigator from './src/navigation/TabNavigator';
-import { useGameStore } from './src/store/gameStore';
-import { formatNumber } from './src/utils/formatNumber';
-import { GAME_CONSTANTS, COLORS } from './src/data/constants';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { COLORS } from './src/data/constants';
 
-const linking = Platform.OS === 'web' ? {
-  prefixes: [typeof window !== 'undefined' ? window.location.origin : ''],
-  config: {
-    screens: {
-      Brewery: '',
-      Upgrades: 'upgrades',
-      Collection: 'collection',
-      Settings: 'settings',
-    },
-  },
-} : undefined;
-
-function showAlert(title: string, message: string) {
-  if (Platform.OS === 'web') {
-    window.alert(`${title}\n\n${message}`);
-  } else {
-    Alert.alert(title, message);
+// Error boundary to display crashes visually
+class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) { return { error }; }
+  componentDidCatch(error: Error, info: ErrorInfo) { console.error('App crash:', error, info); }
+  render() {
+    if (this.state.error) {
+      return (
+        <View style={{ flex: 1, backgroundColor: '#1a0f00', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Text style={{ color: '#ef4444', fontSize: 20, fontWeight: 'bold' }}>Error</Text>
+          <Text style={{ color: '#fef3c7', fontSize: 14, marginTop: 10 }}>{this.state.error.message}</Text>
+        </View>
+      );
+    }
+    return this.props.children;
   }
 }
 
-function GameLoop() {
-  const tick = useGameStore((s) => s.tick);
-  const saveGame = useGameStore((s) => s.saveGame);
-  const loadGame = useGameStore((s) => s.loadGame);
-  const calculateIdleEarnings = useGameStore((s) => s.calculateIdleEarnings);
-  const addAutoBrewEarnings = useGameStore((s) => s.addAutoBrewEarnings);
-  const lastOnlineAt = useGameStore((s) => s.lastOnlineAt);
-  const [loaded, setLoaded] = useState(false);
-  const appState = useRef(AppState.currentState);
+// Lazy load the full app to isolate navigation/store errors
+const FullApp = React.lazy(() => import('./src/FullApp'));
 
-  // Load game on mount
-  useEffect(() => {
-    loadGame().then(() => setLoaded(true)).catch(() => setLoaded(true));
-  }, []);
-
-  // Show idle earnings after load
-  useEffect(() => {
-    if (!loaded) return;
-    try {
-      const earnings = calculateIdleEarnings();
-      if (earnings > 0) {
-        addAutoBrewEarnings((Date.now() - lastOnlineAt) / 1000);
-        showAlert(
-          '🍺 Welcome Back!',
-          `Your brewery earned 🪙 ${formatNumber(earnings)} while you were away!`
-        );
-      }
-    } catch {}
-  }, [loaded]);
-
-  // Auto-brew tick every second
-  useEffect(() => {
-    const interval = setInterval(tick, GAME_CONSTANTS.TICK_INTERVAL);
-    return () => clearInterval(interval);
-  }, [tick]);
-
-  // Auto-save periodically
-  useEffect(() => {
-    const interval = setInterval(saveGame, GAME_CONSTANTS.AUTO_SAVE_INTERVAL);
-    return () => clearInterval(interval);
-  }, [saveGame]);
-
-  // Save on background, load idle earnings on foreground
-  useEffect(() => {
-    if (Platform.OS === 'web') return;
-    const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
-      if (appState.current === 'active' && nextState.match(/inactive|background/)) {
-        saveGame();
-      }
-      if (appState.current.match(/inactive|background/) && nextState === 'active') {
-        const earnings = calculateIdleEarnings();
-        if (earnings > 100) {
-          addAutoBrewEarnings((Date.now() - lastOnlineAt) / 1000);
-          showAlert(
-            '🍺 Welcome Back!',
-            `Your brewery earned 🪙 ${formatNumber(earnings)} while you were away!`
-          );
-        }
-      }
-      appState.current = nextState;
-    });
-    return () => sub.remove();
-  }, []);
-
-  return null;
+function LoadingScreen() {
+  return (
+    <View style={styles.root}>
+      <Text style={styles.title}>🍺 BeerFriends</Text>
+      <Text style={styles.subtitle}>Loading Brewery...</Text>
+    </View>
+  );
 }
 
 export default function App() {
   return (
-    <View style={styles.root}>
-      <NavigationContainer linking={linking}>
+    <ErrorBoundary>
+      <View style={styles.root}>
         <StatusBar style="light" />
-        <GameLoop />
-        <TabNavigator />
-      </NavigationContainer>
-    </View>
+        <React.Suspense fallback={<LoadingScreen />}>
+          <FullApp />
+        </React.Suspense>
+      </View>
+    </ErrorBoundary>
   );
 }
 
@@ -110,5 +50,18 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    textAlign: 'center',
+    marginTop: 100,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: 10,
   },
 });
