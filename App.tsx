@@ -1,67 +1,41 @@
-import React, { useEffect, useRef, useState, Component, ErrorInfo, ReactNode } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { View, Text, StyleSheet, Platform } from 'react-native';
-import { COLORS } from './src/data/constants';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 
-// Error boundary to display crashes visually
-class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
-  state = { error: null as Error | null };
-  static getDerivedStateFromError(error: Error) { return { error }; }
-  componentDidCatch(error: Error, info: ErrorInfo) { console.error('App crash:', error, info); }
-  render() {
-    if (this.state.error) {
-      return (
-        <View style={{ flex: 1, backgroundColor: '#1a0f00', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <Text style={{ color: '#ef4444', fontSize: 20, fontWeight: 'bold' }}>Error</Text>
-          <Text style={{ color: '#fef3c7', fontSize: 14, marginTop: 10 }}>{this.state.error.message}</Text>
-        </View>
-      );
-    }
-    return this.props.children;
-  }
-}
-
-// Lazy load the full app to isolate navigation/store errors
-const FullApp = React.lazy(() => import('./src/FullApp'));
-
-function LoadingScreen() {
+export default function App() {
   return (
-    <View style={styles.root}>
-      <Text style={styles.title}>🍺 BeerFriends</Text>
-      <Text style={styles.subtitle}>Loading Brewery...</Text>
+    <View style={styles.container}>
+      <Text style={styles.emoji}>🍺</Text>
+      <Text style={styles.title}>BeerFriends</Text>
+      <Text style={styles.subtitle}>Brewery Tycoon</Text>
+      <Text style={styles.info}>If you see this, the app works!</Text>
     </View>
   );
 }
 
-export default function App() {
-  return (
-    <ErrorBoundary>
-      <View style={styles.root}>
-        <StatusBar style="light" />
-        <React.Suspense fallback={<LoadingScreen />}>
-          <FullApp />
-        </React.Suspense>
-      </View>
-    </ErrorBoundary>
-  );
-}
-
 const styles = StyleSheet.create({
-  root: {
+  container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#1a0f00',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emoji: {
+    fontSize: 80,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: COLORS.primary,
-    textAlign: 'center',
-    marginTop: 100,
+    color: '#f59e0b',
+    marginTop: 16,
   },
   subtitle: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    marginTop: 10,
+    fontSize: 18,
+    color: '#d4a574',
+    marginTop: 4,
+  },
+  info: {
+    fontSize: 14,
+    color: '#92716a',
+    marginTop: 24,
   },
 });
