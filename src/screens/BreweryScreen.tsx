@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import SafeArea from '../components/SafeArea';
 import CoinDisplay from '../components/CoinDisplay';
 import BrewButton from '../components/BrewButton';
 import FloatingText from '../components/FloatingText';
@@ -38,7 +39,7 @@ export default function BreweryScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeArea style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>🍺 BeerFriends Brewery</Text>
         {prestigeLevel > 0 && (
@@ -72,7 +73,7 @@ export default function BreweryScreen() {
           🍺 Beers brewed: {formatNumber(beersBrewed)}
         </Text>
       </View>
-    </SafeAreaView>
+    </SafeArea>
   );
 }
 

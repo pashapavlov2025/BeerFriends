@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
-import { Alert, AppState, AppStateStatus, Platform } from 'react-native';
+import { Alert, AppState, AppStateStatus, Platform, View, StyleSheet } from 'react-native';
 import TabNavigator from './src/navigation/TabNavigator';
 import { useGameStore } from './src/store/gameStore';
 import { formatNumber } from './src/utils/formatNumber';
-import { GAME_CONSTANTS } from './src/data/constants';
+import { GAME_CONSTANTS, COLORS } from './src/data/constants';
 
-const linking = {
-  prefixes: [],
+const linking = Platform.OS === 'web' ? {
+  prefixes: [typeof window !== 'undefined' ? window.location.origin : ''],
   config: {
     screens: {
       Brewery: '',
@@ -17,7 +17,7 @@ const linking = {
       Settings: 'settings',
     },
   },
-};
+} : undefined;
 
 function showAlert(title: string, message: string) {
   if (Platform.OS === 'web') {
@@ -39,20 +39,22 @@ function GameLoop() {
 
   // Load game on mount
   useEffect(() => {
-    loadGame().then(() => setLoaded(true));
+    loadGame().then(() => setLoaded(true)).catch(() => setLoaded(true));
   }, []);
 
   // Show idle earnings after load
   useEffect(() => {
     if (!loaded) return;
-    const earnings = calculateIdleEarnings();
-    if (earnings > 0) {
-      addAutoBrewEarnings((Date.now() - lastOnlineAt) / 1000);
-      showAlert(
-        '🍺 Welcome Back!',
-        `Your brewery earned 🪙 ${formatNumber(earnings)} while you were away!`
-      );
-    }
+    try {
+      const earnings = calculateIdleEarnings();
+      if (earnings > 0) {
+        addAutoBrewEarnings((Date.now() - lastOnlineAt) / 1000);
+        showAlert(
+          '🍺 Welcome Back!',
+          `Your brewery earned 🪙 ${formatNumber(earnings)} while you were away!`
+        );
+      }
+    } catch {}
   }, [loaded]);
 
   // Auto-brew tick every second
@@ -69,7 +71,7 @@ function GameLoop() {
 
   // Save on background, load idle earnings on foreground
   useEffect(() => {
-    if (Platform.OS === 'web') return; // AppState not reliable on web
+    if (Platform.OS === 'web') return;
     const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
       if (appState.current === 'active' && nextState.match(/inactive|background/)) {
         saveGame();
@@ -94,10 +96,19 @@ function GameLoop() {
 
 export default function App() {
   return (
-    <NavigationContainer linking={linking}>
-      <StatusBar style="light" />
-      <GameLoop />
-      <TabNavigator />
-    </NavigationContainer>
+    <View style={styles.root}>
+      <NavigationContainer linking={linking}>
+        <StatusBar style="light" />
+        <GameLoop />
+        <TabNavigator />
+      </NavigationContainer>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+});

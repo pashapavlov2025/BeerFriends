@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import SafeArea from '../components/SafeArea';
 import BeerCard from '../components/BeerCard';
 import CoinDisplay from '../components/CoinDisplay';
 import { BEERS } from '../data/beers';
@@ -7,7 +8,7 @@ import { COLORS } from '../data/constants';
 
 export default function CollectionScreen() {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeArea style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>📖 Beer Collection</Text>
       </View>
@@ -19,7 +20,7 @@ export default function CollectionScreen() {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeArea>
   );
 }
 

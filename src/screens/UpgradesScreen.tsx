@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import SafeArea from '../components/SafeArea';
 import UpgradeCard from '../components/UpgradeCard';
 import CoinDisplay from '../components/CoinDisplay';
 import { UPGRADES } from '../data/upgrades';
@@ -7,7 +8,7 @@ import { COLORS } from '../data/constants';
 
 export default function UpgradesScreen() {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeArea style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>⬆️ Upgrades</Text>
       </View>
@@ -17,7 +18,7 @@ export default function UpgradesScreen() {
           <UpgradeCard key={upgrade.id} upgrade={upgrade} />
         ))}
       </ScrollView>
-    </SafeAreaView>
+    </SafeArea>
   );
 }
 

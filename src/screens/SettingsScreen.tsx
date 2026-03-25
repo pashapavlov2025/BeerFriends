@@ -5,11 +5,11 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  SafeAreaView,
   Alert,
   Modal,
   Platform,
 } from 'react-native';
+import SafeArea from '../components/SafeArea';
 import { useGameStore } from '../store/gameStore';
 import { formatNumber } from '../utils/formatNumber';
 import { COLORS, GAME_CONSTANTS } from '../data/constants';
@@ -54,7 +54,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeArea style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>⚙️ Settings</Text>
       </View>
@@ -126,7 +126,7 @@ export default function SettingsScreen() {
 
         <Text style={styles.version}>BeerFriends v1.0.0 MVP</Text>
       </ScrollView>
-    </SafeAreaView>
+    </SafeArea>
   );
 }
 
