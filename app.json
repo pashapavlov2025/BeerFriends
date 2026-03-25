@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "BeerFriends: Brewery Tycoon",
+    "slug": "beerfriends-brewery-tycoon",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a0f00"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.beerfriends.brewerytycoon"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1a0f00",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.beerfriends.brewerytycoon"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
