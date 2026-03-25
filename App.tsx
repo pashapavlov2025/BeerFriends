@@ -1,11 +1,31 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
-import { Alert, AppState, AppStateStatus } from 'react-native';
+import { Alert, AppState, AppStateStatus, Platform } from 'react-native';
 import TabNavigator from './src/navigation/TabNavigator';
 import { useGameStore } from './src/store/gameStore';
 import { formatNumber } from './src/utils/formatNumber';
 import { GAME_CONSTANTS } from './src/data/constants';
+
+const linking = {
+  prefixes: [],
+  config: {
+    screens: {
+      Brewery: '',
+      Upgrades: 'upgrades',
+      Collection: 'collection',
+      Settings: 'settings',
+    },
+  },
+};
+
+function showAlert(title: string, message: string) {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+}
 
 function GameLoop() {
   const tick = useGameStore((s) => s.tick);
@@ -28,7 +48,7 @@ function GameLoop() {
     const earnings = calculateIdleEarnings();
     if (earnings > 0) {
       addAutoBrewEarnings((Date.now() - lastOnlineAt) / 1000);
-      Alert.alert(
+      showAlert(
         '🍺 Welcome Back!',
         `Your brewery earned 🪙 ${formatNumber(earnings)} while you were away!`
       );
@@ -49,6 +69,7 @@ function GameLoop() {
 
   // Save on background, load idle earnings on foreground
   useEffect(() => {
+    if (Platform.OS === 'web') return; // AppState not reliable on web
     const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
       if (appState.current === 'active' && nextState.match(/inactive|background/)) {
         saveGame();
@@ -57,7 +78,7 @@ function GameLoop() {
         const earnings = calculateIdleEarnings();
         if (earnings > 100) {
           addAutoBrewEarnings((Date.now() - lastOnlineAt) / 1000);
-          Alert.alert(
+          showAlert(
             '🍺 Welcome Back!',
             `Your brewery earned 🪙 ${formatNumber(earnings)} while you were away!`
           );
@@ -73,7 +94,7 @@ function GameLoop() {
 
 export default function App() {
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <StatusBar style="light" />
       <GameLoop />
       <TabNavigator />

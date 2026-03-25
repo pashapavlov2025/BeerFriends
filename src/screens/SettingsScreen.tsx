@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Alert,
   Modal,
+  Platform,
 } from 'react-native';
 import { useGameStore } from '../store/gameStore';
 import { formatNumber } from '../utils/formatNumber';
@@ -23,33 +24,32 @@ export default function SettingsScreen() {
 
   const canPrestige = totalCoins >= GAME_CONSTANTS.PRESTIGE_COST;
 
+  const confirmAction = (title: string, message: string, onConfirm: () => void) => {
+    if (Platform.OS === 'web') {
+      if (window.confirm(`${title}\n\n${message}`)) {
+        onConfirm();
+      }
+    } else {
+      Alert.alert(title, message, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Confirm', style: 'destructive', onPress: onConfirm },
+      ]);
+    }
+  };
+
   const handlePrestige = () => {
-    Alert.alert(
+    confirmAction(
       '⭐ Prestige Reset',
       `Reset all progress for a permanent ${Math.round(GAME_CONSTANTS.PRESTIGE_BONUS * 100)}% earnings multiplier?\n\nYour coins and upgrades will be reset, but you'll earn more forever!`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Prestige!',
-          style: 'destructive',
-          onPress: prestige,
-        },
-      ]
+      prestige
     );
   };
 
   const handleReset = () => {
-    Alert.alert(
+    confirmAction(
       '🗑️ Reset Game',
       'This will delete ALL progress, including prestige levels. Are you sure?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset Everything',
-          style: 'destructive',
-          onPress: resetGame,
-        },
-      ]
+      resetGame
     );
   };
 
@@ -102,16 +102,16 @@ export default function SettingsScreen() {
         {/* Monetization Stubs */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>💎 Premium</Text>
-          <TouchableOpacity style={styles.shopButton} onPress={() => Alert.alert('Coming Soon', 'In-app purchases coming soon!')}>
+          <TouchableOpacity style={styles.shopButton} onPress={() => Platform.OS === 'web' ? window.alert('Coming Soon!\n\nIn-app purchases coming soon!') : Alert.alert('Coming Soon', 'In-app purchases coming soon!')}>
             <Text style={styles.shopButtonText}>🪙 10,000 Coins — $0.99</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.shopButton} onPress={() => Alert.alert('Coming Soon', 'In-app purchases coming soon!')}>
+          <TouchableOpacity style={styles.shopButton} onPress={() => Platform.OS === 'web' ? window.alert('Coming Soon!\n\nIn-app purchases coming soon!') : Alert.alert('Coming Soon', 'In-app purchases coming soon!')}>
             <Text style={styles.shopButtonText}>🪙 100,000 Coins — $4.99</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.shopButton} onPress={() => Alert.alert('Coming Soon', 'In-app purchases coming soon!')}>
+          <TouchableOpacity style={styles.shopButton} onPress={() => Platform.OS === 'web' ? window.alert('Coming Soon!\n\nIn-app purchases coming soon!') : Alert.alert('Coming Soon', 'In-app purchases coming soon!')}>
             <Text style={styles.shopButtonText}>🚫 Remove Ads — $2.99</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.adButton} onPress={() => Alert.alert('Coming Soon', 'Rewarded ads coming soon!')}>
+          <TouchableOpacity style={styles.adButton} onPress={() => Platform.OS === 'web' ? window.alert('Coming Soon!\n\nRewarded ads coming soon!') : Alert.alert('Coming Soon', 'Rewarded ads coming soon!')}>
             <Text style={styles.adButtonText}>🎬 Watch Ad for 2x Earnings (30min)</Text>
           </TouchableOpacity>
         </View>
