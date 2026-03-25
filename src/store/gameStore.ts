@@ -17,6 +17,7 @@ interface GameState {
   currentBeer: string;
   prestigeLevel: number;
   prestigeMultiplier: number;
+  boostMultiplier: number;
   lastOnlineAt: number;
 }
 
@@ -27,6 +28,8 @@ interface GameActions {
   unlockBeer: (id: string) => void;
   selectBeer: (id: string) => void;
   prestige: () => void;
+  addCoins: (amount: number) => void;
+  setBoostMultiplier: (mult: number) => void;
   saveGame: () => void;
   loadGame: () => void;
   resetGame: () => void;
@@ -35,7 +38,7 @@ interface GameActions {
 const initialState: GameState = {
   coins: 0, totalCoins: 0, tapPower: 1, autoBrewRate: 0, beersBrewed: 0,
   upgrades: {}, unlockedBeers: ['lager'], currentBeer: 'lager',
-  prestigeLevel: 0, prestigeMultiplier: 1, lastOnlineAt: Date.now(),
+  prestigeLevel: 0, prestigeMultiplier: 1, boostMultiplier: 1, lastOnlineAt: Date.now(),
 };
 
 export const useGameStore = create<GameState & GameActions>((set, get) => ({
@@ -44,7 +47,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   tap: () => {
     const s = get();
     const beer = getBeerById(s.currentBeer);
-    const earned = s.tapPower * beer.tapBonus * s.prestigeMultiplier;
+    const earned = s.tapPower * beer.tapBonus * s.prestigeMultiplier * s.boostMultiplier;
     set({ coins: s.coins + earned, totalCoins: s.totalCoins + earned, beersBrewed: s.beersBrewed + 1 });
   },
 
@@ -52,7 +55,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     const s = get();
     if (s.autoBrewRate <= 0) return;
     const beer = getBeerById(s.currentBeer);
-    const earned = s.autoBrewRate * beer.autoBonus * s.prestigeMultiplier;
+    const earned = s.autoBrewRate * beer.autoBonus * s.prestigeMultiplier * s.boostMultiplier;
     set({ coins: s.coins + earned, totalCoins: s.totalCoins + earned });
   },
 
@@ -93,13 +96,22 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     set({ ...initialState, prestigeLevel: newLevel, prestigeMultiplier: 1 + PRESTIGE_BONUS * newLevel, lastOnlineAt: Date.now() });
   },
 
+  addCoins: (amount: number) => {
+    const s = get();
+    set({ coins: s.coins + amount, totalCoins: s.totalCoins + amount });
+  },
+
+  setBoostMultiplier: (mult: number) => {
+    set({ boostMultiplier: mult });
+  },
+
   saveGame: () => {
     const s = get();
     const data: GameState = {
       coins: s.coins, totalCoins: s.totalCoins, tapPower: s.tapPower, autoBrewRate: s.autoBrewRate,
       beersBrewed: s.beersBrewed, upgrades: s.upgrades, unlockedBeers: s.unlockedBeers,
       currentBeer: s.currentBeer, prestigeLevel: s.prestigeLevel, prestigeMultiplier: s.prestigeMultiplier,
-      lastOnlineAt: Date.now(),
+      boostMultiplier: s.boostMultiplier, lastOnlineAt: Date.now(),
     };
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
   },

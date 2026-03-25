@@ -3,13 +3,14 @@ import { useGameStore } from './store/gameStore';
 import { getBeerById, BEERS } from './data/beers';
 import { UPGRADES, getUpgradeCost } from './data/upgrades';
 import { formatNumber } from './utils/formatNumber';
+import { initSDK, gameplayStart, gameplayStop, showMidgameAd, showRewardedAd } from './utils/crazyGames';
 import './app.css';
 
 function BreweryTab() {
-  const { coins, tapPower, autoBrewRate, beersBrewed, currentBeer, prestigeLevel, prestigeMultiplier, tap } = useGameStore();
+  const { coins, tapPower, autoBrewRate, beersBrewed, currentBeer, prestigeLevel, prestigeMultiplier, boostMultiplier, tap } = useGameStore();
   const beer = getBeerById(currentBeer);
-  const effectiveTap = tapPower * beer.tapBonus * prestigeMultiplier;
-  const effectiveAuto = autoBrewRate * beer.autoBonus * prestigeMultiplier;
+  const effectiveTap = tapPower * beer.tapBonus * prestigeMultiplier * boostMultiplier;
+  const effectiveAuto = autoBrewRate * beer.autoBonus * prestigeMultiplier * boostMultiplier;
   const [floats, setFloats] = useState<{ id: number; x: number; y: number }[]>([]);
   const nextId = useRef(0);
 
@@ -27,6 +28,7 @@ function BreweryTab() {
     <div className="tab-content brewery">
       <h2>🍺 BeerFriends Brewery</h2>
       {prestigeLevel > 0 && <div className="prestige-badge">⭐ Prestige {prestigeLevel}</div>}
+      {boostMultiplier > 1 && <div className="boost-badge">🔥 {boostMultiplier}x Boost Active!</div>}
       <div className="coins">🪙 {formatNumber(coins)}</div>
       {effectiveAuto > 0 && <div className="auto-rate">{formatNumber(effectiveAuto)}/sec</div>}
       <div className="beer-label">{beer.emoji} Brewing: {beer.name}</div>
@@ -112,7 +114,26 @@ function CollectionTab() {
 
 function SettingsTab() {
   const { totalCoins, beersBrewed, prestigeLevel, prestigeMultiplier, prestige, resetGame } = useGameStore();
+  const [adBoost, setAdBoost] = useState(false);
   const canPrestige = totalCoins >= 1_000_000;
+
+  const handleRewardedAd = async (reward: 'coins' | 'boost') => {
+    const watched = await showRewardedAd();
+    if (!watched) return;
+    if (reward === 'coins') {
+      const bonus = Math.max(1000, Math.floor(totalCoins * 0.05));
+      useGameStore.getState().addCoins(bonus);
+      alert(`🎉 You earned ${formatNumber(bonus)} bonus coins!`);
+    } else {
+      setAdBoost(true);
+      useGameStore.getState().setBoostMultiplier(2);
+      setTimeout(() => {
+        setAdBoost(false);
+        useGameStore.getState().setBoostMultiplier(1);
+      }, 30 * 60 * 1000);
+    }
+  };
+
   return (
     <div className="tab-content">
       <h2>⚙️ Settings</h2>
@@ -133,10 +154,15 @@ function SettingsTab() {
         </button>
       </div>
       <div className="section">
-        <h3>💎 Premium (Coming Soon)</h3>
-        <button className="shop-btn" onClick={() => alert('Coming soon!')}>🪙 10,000 Coins — $0.99</button>
-        <button className="shop-btn" onClick={() => alert('Coming soon!')}>🪙 100,000 Coins — $4.99</button>
-        <button className="shop-btn" onClick={() => alert('Coming soon!')}>🎬 Watch Ad for 2x (30min)</button>
+        <h3>🎬 Free Rewards</h3>
+        <button className="shop-btn reward-btn" onClick={() => handleRewardedAd('coins')}>
+          🎬 Watch Ad → Free Coins
+        </button>
+        <button className={`shop-btn reward-btn ${adBoost ? 'disabled' : ''}`}
+          onClick={() => !adBoost && handleRewardedAd('boost')}
+          disabled={adBoost}>
+          {adBoost ? '🔥 2x Boost Active!' : '🎬 Watch Ad → 2x Earnings (30min)'}
+        </button>
       </div>
       <div className="section">
         <button className="danger-btn" onClick={() => { if (confirm('Delete ALL progress?')) resetGame(); }}>
@@ -151,10 +177,33 @@ function SettingsTab() {
 export default function App() {
   const [tab, setTab] = useState<'brew' | 'upgrades' | 'collection' | 'settings'>('brew');
   const { tick, saveGame, loadGame } = useGameStore();
+  const tabSwitchCount = useRef(0);
 
-  useEffect(() => { loadGame(); }, []);
+  useEffect(() => {
+    initSDK();
+    loadGame();
+    gameplayStart();
+    const handleVisibility = () => {
+      if (document.hidden) { gameplayStop(); saveGame(); }
+      else gameplayStart();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
+
   useEffect(() => { const i = setInterval(tick, 1000); return () => clearInterval(i); }, [tick]);
   useEffect(() => { const i = setInterval(saveGame, 5000); return () => clearInterval(i); }, [saveGame]);
+
+  const handleTabSwitch = useCallback((newTab: typeof tab) => {
+    if (newTab === tab) return;
+    tabSwitchCount.current++;
+    // Show midgame ad every 5 tab switches
+    if (tabSwitchCount.current % 5 === 0) {
+      showMidgameAd().then(() => setTab(newTab));
+    } else {
+      setTab(newTab);
+    }
+  }, [tab]);
 
   return (
     <div className="app">
@@ -165,10 +214,10 @@ export default function App() {
         {tab === 'settings' && <SettingsTab />}
       </div>
       <nav className="tab-bar">
-        <button className={tab === 'brew' ? 'active' : ''} onClick={() => setTab('brew')}>🍺<span>Brewery</span></button>
-        <button className={tab === 'upgrades' ? 'active' : ''} onClick={() => setTab('upgrades')}>⬆️<span>Upgrades</span></button>
-        <button className={tab === 'collection' ? 'active' : ''} onClick={() => setTab('collection')}>📖<span>Collection</span></button>
-        <button className={tab === 'settings' ? 'active' : ''} onClick={() => setTab('settings')}>⚙️<span>Settings</span></button>
+        <button className={tab === 'brew' ? 'active' : ''} onClick={() => handleTabSwitch('brew')}>🍺<span>Brewery</span></button>
+        <button className={tab === 'upgrades' ? 'active' : ''} onClick={() => handleTabSwitch('upgrades')}>⬆️<span>Upgrades</span></button>
+        <button className={tab === 'collection' ? 'active' : ''} onClick={() => handleTabSwitch('collection')}>📖<span>Collection</span></button>
+        <button className={tab === 'settings' ? 'active' : ''} onClick={() => handleTabSwitch('settings')}>⚙️<span>Settings</span></button>
       </nav>
     </div>
   );
