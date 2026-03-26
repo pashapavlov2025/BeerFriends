@@ -6,12 +6,33 @@ import { formatNumber } from './utils/formatNumber';
 import { initSDK, gameplayStart, gameplayStop, showMidgameAd, showRewardedAd } from './utils/crazyGames';
 import './app.css';
 
+function AboutModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="about-overlay" onClick={onClose}>
+      <div className="about-modal" onClick={e => e.stopPropagation()}>
+        <button className="about-close" onClick={onClose}>✕</button>
+        <h2>🍺 BeerFriends: Brewery Tycoon</h2>
+        <p>Build your beer empire from scratch! Tap to brew, upgrade your equipment, collect rare beer recipes, and become the ultimate Brewery Tycoon.</p>
+        <ul>
+          <li>🍺 Tap to brew and earn coins</li>
+          <li>⬆️ Buy upgrades to boost production</li>
+          <li>📖 Collect 6 unique beer types</li>
+          <li>⭐ Prestige for permanent bonuses</li>
+          <li>🎬 Watch ads for free rewards</li>
+        </ul>
+        <div className="about-footer">v1.0.0 | Made with 🍺</div>
+      </div>
+    </div>
+  );
+}
+
 function BreweryTab() {
   const { coins, tapPower, autoBrewRate, beersBrewed, currentBeer, prestigeLevel, prestigeMultiplier, boostMultiplier, tap } = useGameStore();
   const beer = getBeerById(currentBeer);
   const effectiveTap = tapPower * beer.tapBonus * prestigeMultiplier * boostMultiplier;
   const effectiveAuto = autoBrewRate * beer.autoBonus * prestigeMultiplier * boostMultiplier;
   const [floats, setFloats] = useState<{ id: number; x: number; y: number }[]>([]);
+  const [showAbout, setShowAbout] = useState(false);
   const nextId = useRef(0);
 
   const handleTap = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -26,6 +47,8 @@ function BreweryTab() {
 
   return (
     <div className="tab-content brewery">
+      <button className="about-btn" onClick={() => setShowAbout(true)}>ℹ️</button>
+      {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
       <h2>🍺 BeerFriends Brewery</h2>
       {prestigeLevel > 0 && <div className="prestige-badge">⭐ Prestige {prestigeLevel}</div>}
       {boostMultiplier > 1 && <div className="boost-badge">🔥 {boostMultiplier}x Boost Active!</div>}
