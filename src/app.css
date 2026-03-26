@@ -77,20 +77,29 @@ h3 {
   position: absolute;
   top: 12px;
   right: 12px;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  border: 1px solid #3d2a10;
-  background: #2a1a08;
+  border: 2px solid #d97706;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #1a0f00;
   font-size: 16px;
+  font-weight: 700;
+  font-style: italic;
+  font-family: Georgia, 'Times New Roman', serif;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
-  transition: background 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+  line-height: 1;
 }
-.about-btn:hover { background: #3d2a10; }
+.about-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+}
 .about-overlay {
   position: fixed;
   inset: 0;

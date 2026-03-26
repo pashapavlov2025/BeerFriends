@@ -47,7 +47,7 @@ function BreweryTab() {
 
   return (
     <div className="tab-content brewery">
-      <button className="about-btn" onClick={() => setShowAbout(true)}>ℹ️</button>
+      <button className="about-btn" onClick={() => setShowAbout(true)}>i</button>
       {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
       <h2>🍺 BeerFriends Brewery</h2>
       {prestigeLevel > 0 && <div className="prestige-badge">⭐ Prestige {prestigeLevel}</div>}
