@@ -6,7 +6,7 @@ import { ACHIEVEMENTS } from './data/achievements';
 import { BREWERY_ROOMS } from './data/breweryRooms';
 import { getCraftCost, MAX_RECIPES } from './data/recipes';
 import { formatNumber } from './utils/formatNumber';
-import { initSDK, gameplayStart, gameplayStop, showMidgameAd, showRewardedAd } from './utils/crazyGames';
+import { initSDK, gameplayStart, gameplayStop } from './utils/crazyGames';
 import './app.css';
 
 function AboutModal({ onClose }: { onClose: () => void }) {
@@ -312,29 +312,8 @@ function AchievementsTab() {
 }
 
 function ShopTab() {
-  const { totalCoins, beersBrewed, prestigeLevel, prestigeMultiplier, gems, adsRemoved, goldenSkin, autoTapEnabled, prestige, resetGame, buyRemoveAds, buyGoldenSkin, buyAutoTap } = useGameStore();
-  const [adBoost, setAdBoost] = useState(false);
+  const { totalCoins, beersBrewed, prestigeLevel, prestigeMultiplier, gems, goldenSkin, autoTapEnabled, prestige, resetGame, buyGoldenSkin, buyAutoTap } = useGameStore();
   const canPrestige = totalCoins >= 10_000_000;
-
-  const handleRewardedAd = async (reward: 'coins' | 'boost' | 'gems') => {
-    const watched = await showRewardedAd();
-    if (!watched) return;
-    if (reward === 'coins') {
-      const bonus = Math.max(1000, Math.floor(totalCoins * 0.05));
-      useGameStore.getState().addCoins(bonus);
-      alert(`🎉 You earned ${formatNumber(bonus)} bonus coins!`);
-    } else if (reward === 'boost') {
-      setAdBoost(true);
-      useGameStore.getState().setBoostMultiplier(2);
-      setTimeout(() => {
-        setAdBoost(false);
-        useGameStore.getState().setBoostMultiplier(1);
-      }, 30 * 60 * 1000);
-    } else {
-      useGameStore.getState().addGems(10);
-      alert('💎 You earned 10 gems!');
-    }
-  };
 
   return (
     <div className="tab-content">
@@ -344,12 +323,6 @@ function ShopTab() {
       <div className="section">
         <h3>💎 Gem Shop</h3>
         <div className="shop-grid">
-          <button className={`shop-item ${adsRemoved ? 'owned' : gems < 500 ? 'disabled' : ''}`}
-            onClick={() => !adsRemoved && buyRemoveAds()} disabled={adsRemoved || gems < 500}>
-            <span className="shop-icon">🚫</span>
-            <span className="shop-name">{adsRemoved ? 'Owned' : 'Remove Ads'}</span>
-            <span className="shop-price">💎 500</span>
-          </button>
           <button className={`shop-item ${goldenSkin ? 'owned' : gems < 200 ? 'disabled' : ''}`}
             onClick={() => !goldenSkin && buyGoldenSkin()} disabled={goldenSkin || gems < 200}>
             <span className="shop-icon">✨</span>
@@ -363,20 +336,6 @@ function ShopTab() {
             <span className="shop-price">💎 300</span>
           </button>
         </div>
-      </div>
-
-      <div className="section">
-        <h3>🎬 Free Rewards</h3>
-        <button className="shop-btn reward-btn" onClick={() => handleRewardedAd('coins')}>
-          🎬 Watch Ad → Free Coins
-        </button>
-        <button className={`shop-btn reward-btn ${adBoost ? 'disabled' : ''}`}
-          onClick={() => !adBoost && handleRewardedAd('boost')} disabled={adBoost}>
-          {adBoost ? '🔥 2x Boost Active!' : '🎬 Watch Ad → 2x Earnings (30min)'}
-        </button>
-        <button className="shop-btn reward-btn" onClick={() => handleRewardedAd('gems')}>
-          🎬 Watch Ad → 💎 10 Gems
-        </button>
       </div>
 
       <div className="section">
@@ -409,8 +368,7 @@ function ShopTab() {
 
 export default function App() {
   const [tab, setTab] = useState<'brew' | 'upgrades' | 'collection' | 'achievements' | 'shop'>('brew');
-  const { tick, saveGame, loadGame, adsRemoved } = useGameStore();
-  const tabSwitchCount = useRef(0);
+  const { tick, saveGame, loadGame } = useGameStore();
 
   useEffect(() => {
     initSDK();
@@ -429,13 +387,8 @@ export default function App() {
 
   const handleTabSwitch = useCallback((newTab: typeof tab) => {
     if (newTab === tab) return;
-    tabSwitchCount.current++;
-    if (!adsRemoved && tabSwitchCount.current % 5 === 0) {
-      showMidgameAd().then(() => setTab(newTab));
-    } else {
-      setTab(newTab);
-    }
-  }, [tab, adsRemoved]);
+    setTab(newTab);
+  }, [tab]);
 
   return (
     <div className="app">
