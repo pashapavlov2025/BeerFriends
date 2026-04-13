@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="45%" r="75%">
+      <stop offset="0%" stop-color="#3d2a10"/>
+      <stop offset="100%" stop-color="#0f0a05"/>
+    </radialGradient>
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fcd34d"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="beerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="30%" stop-color="#fcd34d"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="800" height="800" fill="url(#bgGrad)"/>
+
+  <!-- Decorative bubbles -->
+  <circle cx="80" cy="100" r="40" fill="#f59e0b" opacity="0.1"/>
+  <circle cx="720" cy="120" r="50" fill="#f59e0b" opacity="0.1"/>
+  <circle cx="100" cy="700" r="45" fill="#f59e0b" opacity="0.12"/>
+  <circle cx="710" cy="680" r="35" fill="#f59e0b" opacity="0.15"/>
+
+  <!-- Title at top -->
+  <text x="400" y="130" font-family="Georgia, serif" font-weight="900" font-size="78" fill="url(#titleGrad)" filter="url(#glow)" text-anchor="middle">BeerFriends</text>
+  <text x="400" y="185" font-family="Georgia, serif" font-style="italic" font-weight="700" font-size="42" fill="#fef3c7" text-anchor="middle">Brewery Tycoon</text>
+
+  <!-- Beer mug center -->
+  <g transform="translate(400, 470)">
+    <!-- Handle -->
+    <path d="M 150 -140 Q 240 -140 240 -30 Q 240 80 150 80" fill="none" stroke="url(#titleGrad)" stroke-width="20"/>
+    <!-- Mug body -->
+    <rect x="-150" y="-170" width="300" height="340" rx="14" fill="#2a1a08" stroke="url(#titleGrad)" stroke-width="7"/>
+    <!-- Beer liquid -->
+    <rect x="-137" y="-115" width="274" height="272" fill="url(#beerGrad)"/>
+    <!-- Foam -->
+    <ellipse cx="0" cy="-115" rx="142" ry="28" fill="#fef3c7"/>
+    <ellipse cx="-85" cy="-132" rx="32" ry="18" fill="#fef3c7"/>
+    <ellipse cx="60" cy="-138" rx="40" ry="22" fill="#fef3c7"/>
+    <ellipse cx="110" cy="-124" rx="26" ry="14" fill="#fef3c7"/>
+    <!-- Bubbles -->
+    <circle cx="-60" cy="20" r="8" fill="#fef3c7" opacity="0.7"/>
+    <circle cx="30" cy="60" r="10" fill="#fef3c7" opacity="0.6"/>
+    <circle cx="90" cy="80" r="7" fill="#fef3c7" opacity="0.7"/>
+    <circle cx="-30" cy="110" r="12" fill="#fef3c7" opacity="0.5"/>
+    <circle cx="75" cy="-20" r="6" fill="#fef3c7" opacity="0.8"/>
+  </g>
+
+  <!-- Tagline -->
+  <text x="400" y="720" font-family="Arial, sans-serif" font-weight="700" font-size="36" fill="#d4a574" text-anchor="middle">Tap. Brew. Empire.</text>
+
+  <!-- Single feature pill -->
+  <g transform="translate(400, 745)">
+    <rect x="-160" y="0" width="320" height="44" rx="22" fill="#2a1a08" stroke="#f59e0b" stroke-width="2.5"/>
+    <text x="0" y="30" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="#fef3c7" text-anchor="middle">🍺 Idle · ⬆️ Upgrades · ⭐ Prestige</text>
+  </g>
+</svg>
