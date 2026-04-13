@@ -10,21 +10,57 @@ import { initSDK, gameplayStart, gameplayStop } from './utils/crazyGames';
 import './app.css';
 
 function AboutModal({ onClose }: { onClose: () => void }) {
+  const [section, setSection] = useState<'about' | 'privacy' | 'terms'>('about');
   return (
     <div className="about-overlay" onClick={onClose}>
       <div className="about-modal" onClick={e => e.stopPropagation()}>
         <button className="about-close" onClick={onClose}>✕</button>
-        <h2>🍺 BeerFriends: Brewery Tycoon</h2>
-        <p>Build your beer empire from scratch! Tap to brew, upgrade your equipment, collect rare beer recipes, and become the ultimate Brewery Tycoon.</p>
-        <ul>
-          <li>🍺 Tap to brew and earn coins</li>
-          <li>⬆️ Buy upgrades & build rooms</li>
-          <li>📖 Collect beers & craft recipes</li>
-          <li>🏆 Earn achievements & gems</li>
-          <li>💎 Spend gems in the shop</li>
-          <li>⭐ Prestige for permanent bonuses</li>
-        </ul>
-        <div className="about-footer">v2.0.0 | Made with 🍺</div>
+        {section === 'about' && (
+          <>
+            <h2>🍺 BeerFriends: Brewery Tycoon</h2>
+            <p>Build your beer empire from scratch! Tap to brew, upgrade your equipment, collect rare beer recipes, and become the ultimate Brewery Tycoon.</p>
+            <ul>
+              <li>🍺 Tap to brew and earn coins</li>
+              <li>⬆️ Buy upgrades & build rooms</li>
+              <li>📖 Collect beers & craft recipes</li>
+              <li>🏆 Earn achievements & gems</li>
+              <li>💎 Spend gems in the shop</li>
+              <li>⭐ Prestige for permanent bonuses</li>
+            </ul>
+            <div className="about-links">
+              <button className="link-btn" onClick={() => setSection('privacy')}>Privacy Policy</button>
+              <span> · </span>
+              <button className="link-btn" onClick={() => setSection('terms')}>Terms of Use</button>
+            </div>
+            <div className="about-footer">v2.0.0 | Made with 🍺</div>
+          </>
+        )}
+        {section === 'privacy' && (
+          <>
+            <h2>Privacy Policy</h2>
+            <p><strong>Last updated: 2025</strong></p>
+            <p>BeerFriends: Brewery Tycoon respects your privacy. This policy explains how we handle data.</p>
+            <p><strong>Data we store:</strong> Game progress (coins, upgrades, achievements) is saved locally in your browser's storage on your device only. We do not collect, transmit, or share any personal data.</p>
+            <p><strong>Cookies:</strong> We do not use cookies or tracking technologies.</p>
+            <p><strong>Third parties:</strong> When played on third-party platforms (e.g., CrazyGames), those platforms may have their own privacy policies.</p>
+            <p><strong>Children:</strong> The game is suitable for all ages and does not knowingly collect data from anyone.</p>
+            <p><strong>Contact:</strong> For questions about this policy, contact the game author via the hosting platform.</p>
+            <button className="link-btn back-btn" onClick={() => setSection('about')}>← Back</button>
+          </>
+        )}
+        {section === 'terms' && (
+          <>
+            <h2>Terms of Use</h2>
+            <p><strong>Last updated: 2025</strong></p>
+            <p>By playing BeerFriends: Brewery Tycoon, you agree to these terms.</p>
+            <p><strong>1. Usage:</strong> The game is provided free of charge for personal entertainment. You may not modify, redistribute, or sell the game.</p>
+            <p><strong>2. In-game currency:</strong> Coins, gems, and all virtual items have no real-world value and cannot be exchanged for money.</p>
+            <p><strong>3. Progress:</strong> Game progress is stored locally in your browser. We are not responsible for lost progress due to browser settings, cache clearing, or device issues.</p>
+            <p><strong>4. Disclaimer:</strong> The game is provided "as is" without warranties. We are not liable for any damages arising from use of the game.</p>
+            <p><strong>5. Changes:</strong> These terms may be updated. Continued play constitutes acceptance.</p>
+            <button className="link-btn back-btn" onClick={() => setSection('about')}>← Back</button>
+          </>
+        )}
       </div>
     </div>
   );

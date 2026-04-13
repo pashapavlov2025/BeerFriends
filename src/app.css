@@ -182,6 +182,34 @@ h3 {
   cursor: pointer;
 }
 .about-close:hover { color: #fef3c7; }
+.about-links {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #8b7355;
+  font-size: 13px;
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: #f59e0b;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+}
+.link-btn:hover { color: #fbbf24; }
+.back-btn {
+  display: block;
+  margin-top: 12px;
+  text-align: left;
+}
+.about-modal p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #d4a574;
+  margin-bottom: 10px;
+}
+.about-modal p strong { color: #fef3c7; }
 .about-footer {
   text-align: center;
   font-size: 12px;
