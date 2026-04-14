@@ -103,13 +103,15 @@ function BreweryTab() {
     setTimeout(() => setFloats(f => f.filter(v => v.id !== id)), 800);
   }, [tap]);
 
-  // Random mug break on the tavern floor — only fires if the player has
-  // tapped in the last 30s (so silent away-time stays silent).
+  // Random mug break on the tavern floor. Ticks every 12 s with a 30 %
+  // chance to fire — typically a player will see one within the first
+  // minute of tapping. Gated on "has tapped in the last 25 s" so idle
+  // away-time stays silent.
   useEffect(() => {
     const i = window.setInterval(() => {
-      if (Date.now() - lastTapRef.current > 30_000) return;
-      if (Math.random() < 0.15) breakMug();
-    }, 45_000);
+      if (Date.now() - lastTapRef.current > 25_000) return;
+      if (Math.random() < 0.3) breakMug();
+    }, 12_000);
     return () => clearInterval(i);
   }, []);
 

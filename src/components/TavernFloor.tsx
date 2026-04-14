@@ -1,20 +1,18 @@
 import { useEffect, useRef } from 'react';
 import { playSfx } from '../utils/audio';
 
-// Decorative "tavern floor" scene anchored at the bottom of the Brewery tab.
-// A round wooden table in the centre with four emoji friends seated around
-// it — north/east/south/west. The friends bob gently and their mugs tilt
-// (sip) on staggered CSS animations so it reads as a living scene with no
-// JS cost at rest.
+// Pure CSS tavern scene — no emoji. Four seated patrons around a round
+// wooden table, each with a large mug of foamy beer in front of them.
+// All artwork is made of nested <div>s styled with gradients and pseudo-
+// elements in app.css; this component only handles layout + FX events.
 //
-// Three event types can be triggered imperatively:
-//  - spillBeer(intensity): an amber puddle blooms on the floor with foam
-//  - breakMug(): a mug falls from the tap area, shatters into shards + SFX
-//  - cheers(): all four mugs tilt at once with a ✨ over the table
+// Imperative API for parent code:
+//   spillBeer(intensity)  — amber puddle blooms on the floor
+//   breakMug()            — a mug falls into the scene and shatters
+//   cheers()              — all four mugs tilt up at once
 //
-// Events are fired via a module-scoped ref set on mount. We also expose a
-// named CustomEvent on window so unrelated modules could dispatch without
-// an import cycle — handy for testing from the console.
+// A CustomEvent('tavern-fx') hook is also registered so side modules
+// (or console testing) can trigger events without importing this file.
 
 type SpillIntensity = 'small' | 'medium' | 'large';
 
@@ -38,6 +36,33 @@ export function cheers() {
 
 function rand(min: number, max: number) { return min + Math.random() * (max - min); }
 
+// A CSS-only beer mug: body + handle + amber beer fill + foam cap.
+function Mug({ className = '' }: { className?: string }) {
+  return (
+    <div className={`mug ${className}`}>
+      <div className="mug-body">
+        <div className="mug-beer" />
+        <div className="mug-foam" />
+        <div className="mug-shine" />
+      </div>
+      <div className="mug-handle" />
+    </div>
+  );
+}
+
+// A CSS-only seated patron: round head with hairstyle + simple body.
+function Patron({ variant, className = '' }: { variant: 1 | 2 | 3 | 4; className?: string }) {
+  return (
+    <div className={`patron patron--v${variant} ${className}`}>
+      <div className="patron-body" />
+      <div className="patron-head">
+        <div className="patron-face" />
+        <div className="patron-hair" />
+      </div>
+    </div>
+  );
+}
+
 export function TavernFloor() {
   const fxLayerRef = useRef<HTMLDivElement | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -53,51 +78,51 @@ export function TavernFloor() {
     };
 
     const spill: FxHandlers['spill'] = (intensity) => {
-      const size = intensity === 'large' ? 160 : intensity === 'medium' ? 110 : 72;
+      const size = intensity === 'large' ? 210 : intensity === 'medium' ? 140 : 90;
       const puddle = document.createElement('div');
       puddle.className = `puddle puddle--${intensity}`;
       puddle.style.width = `${size}px`;
-      puddle.style.height = `${size * 0.38}px`;
+      puddle.style.height = `${size * 0.34}px`;
       puddle.style.left = `calc(50% - ${size / 2}px)`;
-      puddle.style.bottom = `2px`;
+      puddle.style.bottom = `8px`;
       spawn(puddle, 1500);
 
-      // Scatter a few foam dots that rise and fade.
-      const foamCount = intensity === 'large' ? 10 : intensity === 'medium' ? 6 : 3;
+      const foamCount = intensity === 'large' ? 12 : intensity === 'medium' ? 7 : 4;
       for (let i = 0; i < foamCount; i++) {
         const f = document.createElement('div');
         f.className = 'foam';
         const xOffset = rand(-size / 2 + 10, size / 2 - 10);
         f.style.left = `calc(50% + ${xOffset}px)`;
-        f.style.bottom = `${6 + rand(0, 8)}px`;
+        f.style.bottom = `${14 + rand(0, 10)}px`;
         f.style.animationDelay = `${i * 40}ms`;
         spawn(f, 1400);
       }
     };
 
     const breakMugFn: FxHandlers['breakMug'] = () => {
-      // Falling mug — absolute-positioned emoji that animates from the top
-      // of the floor scene down to the ground, then spawns shards.
-      const mug = document.createElement('div');
-      mug.className = 'falling-mug';
-      mug.textContent = '🍺';
-      spawn(mug, 700);
+      const falling = document.createElement('div');
+      falling.className = 'falling-mug';
+      falling.innerHTML = `
+        <div class="mug mug--falling">
+          <div class="mug-body"><div class="mug-beer"></div><div class="mug-foam"></div><div class="mug-shine"></div></div>
+          <div class="mug-handle"></div>
+        </div>`;
+      spawn(falling, 700);
+
       window.setTimeout(() => {
-        // Shatter burst
-        for (let i = 0; i < 4; i++) {
+        // Shard pieces fly outward from the smash point.
+        for (let i = 0; i < 5; i++) {
           const s = document.createElement('div');
           s.className = 'shard';
-          s.textContent = i === 0 ? '💥' : '🍺';
           const angle = rand(-1, 1);
-          s.style.setProperty('--dx', `${angle * 60}px`);
-          s.style.setProperty('--dy', `${-rand(14, 30)}px`);
-          s.style.setProperty('--rot', `${angle * 180}deg`);
-          s.style.left = `calc(50% - 10px)`;
-          s.style.bottom = `8px`;
-          s.style.animationDelay = `${i * 20}ms`;
+          s.style.setProperty('--dx', `${angle * 70}px`);
+          s.style.setProperty('--dy', `${-rand(18, 36)}px`);
+          s.style.setProperty('--rot', `${angle * 220}deg`);
+          s.style.left = `calc(50% - 4px)`;
+          s.style.bottom = `10px`;
+          s.style.animationDelay = `${i * 18}ms`;
           spawn(s, 700);
         }
-        // Puddle forms from the smashed mug.
         spill('small');
         playSfx('break');
       }, 520);
@@ -107,20 +132,19 @@ export function TavernFloor() {
       const root = rootRef.current;
       if (!root) return;
       root.classList.add('tavern-cheers');
-      // Floating ✨ above the table.
       const sparkle = document.createElement('div');
-      sparkle.className = 'cheers-sparkle';
-      sparkle.textContent = '🎉';
-      spawn(sparkle, 800);
+      sparkle.className = 'cheers-burst';
+      // Three little star-bursts above the table.
+      sparkle.innerHTML = `<span>✦</span><span>✧</span><span>✦</span>`;
+      spawn(sparkle, 900);
       if (cheersTimeoutRef.current) clearTimeout(cheersTimeoutRef.current);
       cheersTimeoutRef.current = window.setTimeout(() => {
         root.classList.remove('tavern-cheers');
-      }, 800);
+      }, 900);
     };
 
     handlers = { spill, breakMug: breakMugFn, cheers: cheersFn };
 
-    // Optional: console-level debug hook.
     const onDebug = (e: Event) => {
       const detail = (e as CustomEvent).detail as { kind: string; intensity?: SpillIntensity } | undefined;
       if (!detail) return;
@@ -138,15 +162,15 @@ export function TavernFloor() {
 
   return (
     <div className="tavern-floor" ref={rootRef} aria-hidden="true">
-      <div className="tavern-table" />
-      <div className="friend friend--n">🧔</div>
-      <div className="friend friend--e">🧑</div>
-      <div className="friend friend--s">👩</div>
-      <div className="friend friend--w">🧓</div>
-      <div className="friend-mug mug--n">🍺</div>
-      <div className="friend-mug mug--e">🍺</div>
-      <div className="friend-mug mug--s">🍺</div>
-      <div className="friend-mug mug--w">🍺</div>
+      <div className="tavern-floor-planks" />
+      <div className="tavern-table">
+        <div className="tavern-table-top" />
+        <div className="tavern-table-leg" />
+      </div>
+      <div className="seat seat--n"><Patron variant={1} /><Mug className="seat-mug" /></div>
+      <div className="seat seat--e"><Patron variant={2} /><Mug className="seat-mug" /></div>
+      <div className="seat seat--s"><Patron variant={3} /><Mug className="seat-mug" /></div>
+      <div className="seat seat--w"><Patron variant={4} /><Mug className="seat-mug" /></div>
       <div className="tavern-fx" ref={fxLayerRef} />
     </div>
   );
