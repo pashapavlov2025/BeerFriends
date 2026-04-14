@@ -6,7 +6,7 @@ import { ACHIEVEMENTS } from './data/achievements';
 import { BREWERY_ROOMS } from './data/breweryRooms';
 import { getCraftCost, MAX_RECIPES } from './data/recipes';
 import { formatNumber } from './utils/formatNumber';
-import { initSDK, gameplayStart, gameplayStop, showRewardedAd } from './utils/crazyGames';
+import { initSDK, gameplayStart, gameplayStop, showRewardedAd } from './utils/ads';
 import { BreweryLoreHost } from './components/BreweryLore';
 import { MuteButton } from './components/MuteButton';
 import { DailyBonus } from './components/DailyBonus';
@@ -475,10 +475,11 @@ export default function App() {
   const { tick, saveGame, loadGame } = useGameStore();
 
   useEffect(() => {
-    initSDK();
     loadGame();
-    gameplayStart();
     track('session_start');
+    // initSDK() is fire-and-forget; gameplayStart() is safe to call before
+    // SDK is ready — it's a no-op until an adapter finishes init.
+    initSDK().then(gameplayStart);
     const handleVisibility = () => {
       if (document.hidden) { gameplayStop(); saveGame(); }
       else gameplayStart();
