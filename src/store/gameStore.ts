@@ -22,6 +22,7 @@ interface GameState {
   prestigeLevel: number;
   prestigeMultiplier: number;
   boostMultiplier: number;
+  boostEndsAt: number;
   lastOnlineAt: number;
   // Achievements
   claimedAchievements: string[];
@@ -45,6 +46,7 @@ interface GameActions {
   prestige: () => void;
   addCoins: (amount: number) => void;
   setBoostMultiplier: (mult: number) => void;
+  activateBoost: (mult: number, durationMs: number) => void;
   saveGame: () => void;
   loadGame: () => void;
   resetGame: () => void;
@@ -69,7 +71,7 @@ interface GameActions {
 const initialState: GameState = {
   coins: 0, totalCoins: 0, tapPower: 1, autoBrewRate: 0, beersBrewed: 0,
   upgrades: {}, unlockedBeers: ['lager'], currentBeer: 'lager',
-  prestigeLevel: 0, prestigeMultiplier: 1, boostMultiplier: 1, lastOnlineAt: Date.now(),
+  prestigeLevel: 0, prestigeMultiplier: 1, boostMultiplier: 1, boostEndsAt: 0, lastOnlineAt: Date.now(),
   claimedAchievements: [],
   recipes: [],
   builtRooms: [],
@@ -126,6 +128,10 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
   tick: () => {
     const s = get();
+    // Expire boost if its duration is up
+    if (s.boostMultiplier > 1 && s.boostEndsAt > 0 && Date.now() > s.boostEndsAt) {
+      set({ boostMultiplier: 1, boostEndsAt: 0 });
+    }
     // Auto-tap: 2 taps per second
     if (s.autoTapEnabled) {
       const beer = getBeerById(s.currentBeer);
@@ -207,7 +213,11 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   },
 
   setBoostMultiplier: (mult: number) => {
-    set({ boostMultiplier: mult });
+    set({ boostMultiplier: mult, boostEndsAt: 0 });
+  },
+
+  activateBoost: (mult: number, durationMs: number) => {
+    set({ boostMultiplier: mult, boostEndsAt: Date.now() + durationMs });
   },
 
   // Achievements
@@ -309,7 +319,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       coins: s.coins, totalCoins: s.totalCoins, tapPower: s.tapPower, autoBrewRate: s.autoBrewRate,
       beersBrewed: s.beersBrewed, upgrades: s.upgrades, unlockedBeers: s.unlockedBeers,
       currentBeer: s.currentBeer, prestigeLevel: s.prestigeLevel, prestigeMultiplier: s.prestigeMultiplier,
-      boostMultiplier: s.boostMultiplier, lastOnlineAt: Date.now(),
+      boostMultiplier: s.boostMultiplier, boostEndsAt: s.boostEndsAt, lastOnlineAt: Date.now(),
       claimedAchievements: s.claimedAchievements,
       recipes: s.recipes,
       builtRooms: s.builtRooms,

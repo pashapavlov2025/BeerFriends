@@ -6,7 +6,9 @@ import { ACHIEVEMENTS } from './data/achievements';
 import { BREWERY_ROOMS } from './data/breweryRooms';
 import { getCraftCost, MAX_RECIPES } from './data/recipes';
 import { formatNumber } from './utils/formatNumber';
-import { initSDK, gameplayStart, gameplayStop } from './utils/crazyGames';
+import { initSDK, gameplayStart, gameplayStop, showRewardedAd } from './utils/crazyGames';
+import { BreweryLoreHost } from './components/BreweryLore';
+import { track } from './utils/analytics';
 import './app.css';
 
 function AboutModal({ onClose }: { onClose: () => void }) {
@@ -348,13 +350,69 @@ function AchievementsTab() {
 }
 
 function ShopTab() {
-  const { totalCoins, beersBrewed, prestigeLevel, prestigeMultiplier, gems, goldenSkin, autoTapEnabled, prestige, resetGame, buyGoldenSkin, buyAutoTap } = useGameStore();
+  const { totalCoins, beersBrewed, prestigeLevel, prestigeMultiplier, gems, goldenSkin, autoTapEnabled, boostMultiplier, boostEndsAt, prestige, resetGame, buyGoldenSkin, buyAutoTap, activateBoost, addCoins } = useGameStore();
   const canPrestige = totalCoins >= 10_000_000;
+  const boostActive = boostMultiplier > 1 && boostEndsAt > Date.now();
+  const [busy, setBusy] = useState(false);
+
+  const claimBoost = async (mult: number, durationMs: number, label: string) => {
+    if (busy || boostActive) return;
+    setBusy(true);
+    track('lore_boost_requested', { mult, durationMs });
+    const ok = await showRewardedAd(`${mult}× boost ${durationMs / 1000}s`);
+    if (ok) {
+      activateBoost(mult, durationMs);
+      track('lore_boost_claimed', { mult });
+    }
+    setBusy(false);
+    void label;
+  };
+
+  const claimCoinGift = async () => {
+    if (busy) return;
+    setBusy(true);
+    track('lore_coins_requested');
+    const ok = await showRewardedAd('🪙 Coin Gift');
+    if (ok) {
+      const gift = Math.max(200, Math.floor(totalCoins * 0.02));
+      addCoins(gift);
+      track('lore_coins_claimed', { amount: gift });
+    }
+    setBusy(false);
+  };
 
   return (
     <div className="tab-content">
       <h2>💎 Shop & Settings</h2>
       <div className="coins-bar">💎 {gems} gems</div>
+
+      <div className="section">
+        <h3>🍺 Brewery Lore — Free Rewards</h3>
+        <p className="info-text">Enjoy a short brewery fact (5s) in exchange for a bonus. No ads, no cost.</p>
+        <div className="shop-grid">
+          <button className={`shop-item ${boostActive || busy ? 'disabled' : ''}`}
+            onClick={() => claimBoost(2, 60_000, '2× Boost 60s')}
+            disabled={boostActive || busy}>
+            <span className="shop-icon">🔥</span>
+            <span className="shop-name">{boostActive ? 'Active' : '2× Boost'}</span>
+            <span className="shop-price">60 seconds</span>
+          </button>
+          <button className={`shop-item ${boostActive || busy ? 'disabled' : ''}`}
+            onClick={() => claimBoost(5, 30_000, '5× Boost 30s')}
+            disabled={boostActive || busy}>
+            <span className="shop-icon">🚀</span>
+            <span className="shop-name">{boostActive ? 'Active' : '5× Mega Boost'}</span>
+            <span className="shop-price">30 seconds</span>
+          </button>
+          <button className={`shop-item ${busy ? 'disabled' : ''}`}
+            onClick={claimCoinGift}
+            disabled={busy}>
+            <span className="shop-icon">🪙</span>
+            <span className="shop-name">Coin Gift</span>
+            <span className="shop-price">+2% total</span>
+          </button>
+        </div>
+      </div>
 
       <div className="section">
         <h3>💎 Gem Shop</h3>
@@ -410,6 +468,7 @@ export default function App() {
     initSDK();
     loadGame();
     gameplayStart();
+    track('session_start');
     const handleVisibility = () => {
       if (document.hidden) { gameplayStop(); saveGame(); }
       else gameplayStart();
@@ -424,6 +483,7 @@ export default function App() {
   const handleTabSwitch = useCallback((newTab: typeof tab) => {
     if (newTab === tab) return;
     setTab(newTab);
+    track('tab_view', { tab: newTab });
   }, [tab]);
 
   return (
@@ -442,6 +502,7 @@ export default function App() {
         <button className={tab === 'achievements' ? 'active' : ''} onClick={() => handleTabSwitch('achievements')}>🏆<span>Trophies</span></button>
         <button className={tab === 'shop' ? 'active' : ''} onClick={() => handleTabSwitch('shop')}>💎<span>Shop</span></button>
       </nav>
+      <BreweryLoreHost />
     </div>
   );
 }

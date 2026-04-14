@@ -1,5 +1,6 @@
-// CrazyGames SDK v2 wrapper
+// CrazyGames SDK v2 wrapper (+ Brewery Lore fallback for other platforms)
 // SDK is loaded via <script> in index.html, available as window.CrazyGames
+import { requestLoreBreak } from '../components/BreweryLore';
 
 declare global {
   interface Window {
@@ -50,30 +51,34 @@ export function gameplayStop() {
   getSDK()?.game.gameplayStop();
 }
 
-/** Show a midgame (interstitial) ad. Returns a promise that resolves when done. */
+/** Show a midgame (interstitial) ad. Falls back to Brewery Lore overlay. */
 export function showMidgameAd(): Promise<boolean> {
-  return new Promise((resolve) => {
-    const sdk = getSDK();
-    if (!sdk) { resolve(false); return; }
-    sdk.ad.requestAd('midgame', {
-      adStarted: () => {},
-      adFinished: () => resolve(true),
-      adError: () => resolve(false),
+  const sdk = getSDK();
+  if (sdk) {
+    return new Promise((resolve) => {
+      sdk.ad.requestAd('midgame', {
+        adStarted: () => {},
+        adFinished: () => resolve(true),
+        adError: () => resolve(false),
+      });
     });
-  });
+  }
+  return requestLoreBreak('midgame', 'Continue playing');
 }
 
-/** Show a rewarded ad. Returns true if user watched the full ad. */
-export function showRewardedAd(): Promise<boolean> {
-  return new Promise((resolve) => {
-    const sdk = getSDK();
-    if (!sdk) { resolve(false); return; }
-    sdk.ad.requestAd('rewarded', {
-      adStarted: () => {},
-      adFinished: () => resolve(true),
-      adError: () => resolve(false),
+/** Show a rewarded ad. Falls back to Brewery Lore overlay (5s fact screen). */
+export function showRewardedAd(reward = '2× Boost 60s'): Promise<boolean> {
+  const sdk = getSDK();
+  if (sdk) {
+    return new Promise((resolve) => {
+      sdk.ad.requestAd('rewarded', {
+        adStarted: () => {},
+        adFinished: () => resolve(true),
+        adError: () => resolve(false),
+      });
     });
-  });
+  }
+  return requestLoreBreak('rewarded', reward);
 }
 
 /** Check if running inside CrazyGames */
