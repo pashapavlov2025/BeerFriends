@@ -9,7 +9,9 @@ import { formatNumber } from './utils/formatNumber';
 import { initSDK, gameplayStart, gameplayStop, showRewardedAd } from './utils/crazyGames';
 import { BreweryLoreHost } from './components/BreweryLore';
 import { MuteButton } from './components/MuteButton';
+import { DailyBonus } from './components/DailyBonus';
 import { playSfx } from './utils/audio';
+import { burstConfetti, prestigeConfetti, screenShake } from './utils/effects';
 import { track } from './utils/analytics';
 import './app.css';
 
@@ -201,6 +203,7 @@ function CollectionTab() {
     if (craft1 && craft2 && canCraft) {
       craftRecipe(craft1, craft2);
       playSfx('unlock');
+      burstConfetti('small');
       setCraft1(null);
       setCraft2(null);
     }
@@ -229,7 +232,7 @@ function CollectionTab() {
                   {unlocked && active && <span className="active-badge">ACTIVE</span>}
                   {!unlocked && (
                     <button className={`unlock-btn ${coins >= beer.unlockCost ? '' : 'disabled'}`}
-                      onClick={() => { unlockBeer(beer.id); playSfx('unlock'); }} disabled={coins < beer.unlockCost}>
+                      onClick={() => { unlockBeer(beer.id); playSfx('unlock'); burstConfetti('small'); }} disabled={coins < beer.unlockCost}>
                       🪙 {formatNumber(beer.unlockCost)}
                     </button>
                   )}
@@ -337,7 +340,7 @@ function AchievementsTab() {
               </div>
               <div className="achievement-rewards">
                 {ready ? (
-                  <button className="buy-btn" onClick={() => { claimAchievement(a.id); playSfx('achievement'); }}>Claim!</button>
+                  <button className="buy-btn" onClick={() => { claimAchievement(a.id); playSfx('achievement'); burstConfetti('medium'); }}>Claim!</button>
                 ) : !claimed ? (
                   <div className="reward-preview">
                     {a.reward > 0 && <span>🪙{formatNumber(a.reward)}</span>}
@@ -367,6 +370,7 @@ function ShopTab() {
     if (ok) {
       activateBoost(mult, durationMs);
       playSfx('lore');
+      burstConfetti('small');
       track('lore_boost_claimed', { mult });
     }
     setBusy(false);
@@ -450,7 +454,7 @@ function ShopTab() {
         <h3>⭐ Prestige</h3>
         <p className="info-text">Earn 10M lifetime coins to prestige. +10% permanent earnings each time. Keeps achievements, recipes, rooms & gems.</p>
         <button className={`prestige-btn ${canPrestige ? '' : 'disabled'}`}
-          onClick={() => { if (canPrestige && confirm('Reset progress for permanent +10% earnings? (Achievements, recipes, rooms & gems are kept)')) { prestige(); playSfx('prestige'); } }}
+          onClick={() => { if (canPrestige && confirm('Reset progress for permanent +10% earnings? (Achievements, recipes, rooms & gems are kept)')) { prestige(); playSfx('prestige'); prestigeConfetti(); screenShake(450); } }}
           disabled={!canPrestige}>
           {canPrestige ? '⭐ Prestige Now!' : 'Need 10M lifetime coins'}
         </button>
@@ -510,6 +514,7 @@ export default function App() {
       </nav>
       <MuteButton />
       <BreweryLoreHost />
+      <DailyBonus />
     </div>
   );
 }
