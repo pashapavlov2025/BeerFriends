@@ -10,6 +10,7 @@ import { initSDK, gameplayStart, gameplayStop, showRewardedAd } from './utils/ad
 import { BreweryLoreHost } from './components/BreweryLore';
 import { MuteButton } from './components/MuteButton';
 import { DailyBonus } from './components/DailyBonus';
+import { Toast } from './components/Toast';
 import { TavernFloor, spillBeer, breakMug, cheers } from './components/TavernFloor';
 import { playSfx, initAudio } from './utils/audio';
 import { burstConfetti, prestigeConfetti, screenShake } from './utils/effects';
@@ -534,6 +535,7 @@ export default function App() {
       <MuteButton />
       <BreweryLoreHost />
       <DailyBonus />
+      <Toast />
     </div>
   );
 }
