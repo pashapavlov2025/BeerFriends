@@ -376,7 +376,20 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         const idleEarnings = Math.min(secondsAway, 8 * 3600) * merged.autoBrewRate * beer.autoBonus * merged.prestigeMultiplier * 0.5;
         set({ ...merged, coins: merged.coins + idleEarnings, totalCoins: merged.totalCoins + idleEarnings });
         if (idleEarnings > 1) {
-          setTimeout(() => alert(`🍺 Welcome back! You earned ${Math.floor(idleEarnings)} coins while away!`), 500);
+          // Dispatch an in-game toast event instead of a native alert() —
+          // platform iframes (CrazyGames/Poki) reject modal dialogs and
+          // the native prompt looks broken on mobile browsers.
+          setTimeout(() => {
+            try {
+              window.dispatchEvent(new CustomEvent('bf-toast', {
+                detail: {
+                  title: 'Welcome back!',
+                  message: `You earned ${Math.floor(idleEarnings).toLocaleString()} coins while away.`,
+                  emoji: '🍺',
+                },
+              }));
+            } catch {}
+          }, 600);
         }
       }
     } catch {}

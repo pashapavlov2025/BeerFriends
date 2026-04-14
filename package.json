@@ -1,13 +1,16 @@
 {
-  "name": "beerfriendsweb",
+  "name": "beerfriends",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "BeerFriends: Brewery Tycoon — a free HTML5 idle clicker game. Tap to brew, buy upgrades, unlock recipes, prestige for permanent bonuses.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gen:og": "node scripts/gen-og.mjs",
+    "dist:zip": "npm run build && cd dist && zip -r ../beerfriends-dist.zip ."
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
@@ -27,6 +30,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "sharp": "^0.34.5",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.57.0",
     "vite": "^8.0.1"
