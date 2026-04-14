@@ -8,6 +8,8 @@ import { getCraftCost, MAX_RECIPES } from './data/recipes';
 import { formatNumber } from './utils/formatNumber';
 import { initSDK, gameplayStart, gameplayStop, showRewardedAd } from './utils/crazyGames';
 import { BreweryLoreHost } from './components/BreweryLore';
+import { MuteButton } from './components/MuteButton';
+import { playSfx } from './utils/audio';
 import { track } from './utils/analytics';
 import './app.css';
 
@@ -87,6 +89,7 @@ function BreweryTab() {
 
   const handleTap = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     tap();
+    playSfx('tap');
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const clientX = 'touches' in e ? e.touches[0]?.clientX ?? rect.left + rect.width / 2 : e.clientX;
     const clientY = 'touches' in e ? e.touches[0]?.clientY ?? rect.top : e.clientY;
@@ -150,7 +153,7 @@ function UpgradesTab() {
                     <div className="upgrade-desc">{u.description}</div>
                   </div>
                 </div>
-                <button className={`buy-btn ${canBuy ? '' : 'disabled'}`} onClick={() => buyUpgrade(u.id)} disabled={!canBuy}>
+                <button className={`buy-btn ${canBuy ? '' : 'disabled'}`} onClick={() => { buyUpgrade(u.id); playSfx('buy'); }} disabled={!canBuy}>
                   {maxed ? 'MAX' : `🪙 ${formatNumber(cost)}`}
                 </button>
               </div>
@@ -172,7 +175,7 @@ function UpgradesTab() {
                     <div className="upgrade-desc">{room.description}</div>
                   </div>
                 </div>
-                <button className={`buy-btn ${canBuy ? '' : 'disabled'}`} onClick={() => buildRoom(room.id)} disabled={!canBuy}>
+                <button className={`buy-btn ${canBuy ? '' : 'disabled'}`} onClick={() => { buildRoom(room.id); playSfx('buy'); }} disabled={!canBuy}>
                   {built ? '✅' : `🪙 ${formatNumber(room.cost)}`}
                 </button>
               </div>
@@ -197,6 +200,7 @@ function CollectionTab() {
   const handleCraft = () => {
     if (craft1 && craft2 && canCraft) {
       craftRecipe(craft1, craft2);
+      playSfx('unlock');
       setCraft1(null);
       setCraft2(null);
     }
@@ -225,7 +229,7 @@ function CollectionTab() {
                   {unlocked && active && <span className="active-badge">ACTIVE</span>}
                   {!unlocked && (
                     <button className={`unlock-btn ${coins >= beer.unlockCost ? '' : 'disabled'}`}
-                      onClick={() => unlockBeer(beer.id)} disabled={coins < beer.unlockCost}>
+                      onClick={() => { unlockBeer(beer.id); playSfx('unlock'); }} disabled={coins < beer.unlockCost}>
                       🪙 {formatNumber(beer.unlockCost)}
                     </button>
                   )}
@@ -333,7 +337,7 @@ function AchievementsTab() {
               </div>
               <div className="achievement-rewards">
                 {ready ? (
-                  <button className="buy-btn" onClick={() => claimAchievement(a.id)}>Claim!</button>
+                  <button className="buy-btn" onClick={() => { claimAchievement(a.id); playSfx('achievement'); }}>Claim!</button>
                 ) : !claimed ? (
                   <div className="reward-preview">
                     {a.reward > 0 && <span>🪙{formatNumber(a.reward)}</span>}
@@ -362,6 +366,7 @@ function ShopTab() {
     const ok = await showRewardedAd(`${mult}× boost ${durationMs / 1000}s`);
     if (ok) {
       activateBoost(mult, durationMs);
+      playSfx('lore');
       track('lore_boost_claimed', { mult });
     }
     setBusy(false);
@@ -376,6 +381,7 @@ function ShopTab() {
     if (ok) {
       const gift = Math.max(200, Math.floor(totalCoins * 0.02));
       addCoins(gift);
+      playSfx('lore');
       track('lore_coins_claimed', { amount: gift });
     }
     setBusy(false);
@@ -444,7 +450,7 @@ function ShopTab() {
         <h3>⭐ Prestige</h3>
         <p className="info-text">Earn 10M lifetime coins to prestige. +10% permanent earnings each time. Keeps achievements, recipes, rooms & gems.</p>
         <button className={`prestige-btn ${canPrestige ? '' : 'disabled'}`}
-          onClick={() => { if (canPrestige && confirm('Reset progress for permanent +10% earnings? (Achievements, recipes, rooms & gems are kept)')) prestige(); }}
+          onClick={() => { if (canPrestige && confirm('Reset progress for permanent +10% earnings? (Achievements, recipes, rooms & gems are kept)')) { prestige(); playSfx('prestige'); } }}
           disabled={!canPrestige}>
           {canPrestige ? '⭐ Prestige Now!' : 'Need 10M lifetime coins'}
         </button>
@@ -502,6 +508,7 @@ export default function App() {
         <button className={tab === 'achievements' ? 'active' : ''} onClick={() => handleTabSwitch('achievements')}>🏆<span>Trophies</span></button>
         <button className={tab === 'shop' ? 'active' : ''} onClick={() => handleTabSwitch('shop')}>💎<span>Shop</span></button>
       </nav>
+      <MuteButton />
       <BreweryLoreHost />
     </div>
   );

@@ -608,6 +608,28 @@ h3 {
 .screen::-webkit-scrollbar { width: 4px; }
 .screen::-webkit-scrollbar-thumb { background: #3d2a10; border-radius: 2px; }
 
+/* ── Mute button (floating top-left) ── */
+.mute-btn {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  left: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #d97706;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #1a0f00;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  z-index: 500;
+  transition: transform 0.15s, filter 0.15s;
+}
+.mute-btn:hover {
+  transform: scale(1.08);
+  filter: brightness(1.1);
+}
+
 /* ── Brewery Lore overlay (rewarded-ad fallback) ── */
 .lore-overlay {
   position: fixed;
