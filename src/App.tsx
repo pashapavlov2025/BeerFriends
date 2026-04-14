@@ -10,6 +10,7 @@ import { initSDK, gameplayStart, gameplayStop, showRewardedAd } from './utils/ad
 import { BreweryLoreHost } from './components/BreweryLore';
 import { MuteButton } from './components/MuteButton';
 import { DailyBonus } from './components/DailyBonus';
+import { TavernFloor, spillBeer, breakMug, cheers } from './components/TavernFloor';
 import { playSfx, initAudio } from './utils/audio';
 import { burstConfetti, prestigeConfetti, screenShake } from './utils/effects';
 import { track } from './utils/analytics';
@@ -85,6 +86,7 @@ function BreweryTab() {
   const [floats, setFloats] = useState<{ id: number; x: number; y: number }[]>([]);
   const [showAbout, setShowAbout] = useState(false);
   const nextId = useRef(0);
+  const lastTapRef = useRef(0);
 
   const displayEmoji = recipe ? recipe.emoji : beer.emoji;
   const displayName = recipe ? recipe.name : beer.name;
@@ -92,6 +94,7 @@ function BreweryTab() {
   const handleTap = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     tap();
     playSfx('tap');
+    lastTapRef.current = Date.now();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const clientX = 'touches' in e ? e.touches[0]?.clientX ?? rect.left + rect.width / 2 : e.clientX;
     const clientY = 'touches' in e ? e.touches[0]?.clientY ?? rect.top : e.clientY;
@@ -99,6 +102,16 @@ function BreweryTab() {
     setFloats(f => [...f.slice(-5), { id, x: clientX - rect.left, y: clientY - rect.top }]);
     setTimeout(() => setFloats(f => f.filter(v => v.id !== id)), 800);
   }, [tap]);
+
+  // Random mug break on the tavern floor — only fires if the player has
+  // tapped in the last 30s (so silent away-time stays silent).
+  useEffect(() => {
+    const i = window.setInterval(() => {
+      if (Date.now() - lastTapRef.current > 30_000) return;
+      if (Math.random() < 0.15) breakMug();
+    }, 45_000);
+    return () => clearInterval(i);
+  }, []);
 
   return (
     <div className="tab-content brewery">
@@ -124,6 +137,7 @@ function BreweryTab() {
         ))}
       </div>
       <div className="stat-line">🍺 Beers brewed: {formatNumber(beersBrewed)}</div>
+      <TavernFloor />
     </div>
   );
 }
@@ -204,6 +218,7 @@ function CollectionTab() {
       craftRecipe(craft1, craft2);
       playSfx('unlock');
       burstConfetti('small');
+      spillBeer('small');
       setCraft1(null);
       setCraft2(null);
     }
@@ -232,7 +247,7 @@ function CollectionTab() {
                   {unlocked && active && <span className="active-badge">ACTIVE</span>}
                   {!unlocked && (
                     <button className={`unlock-btn ${coins >= beer.unlockCost ? '' : 'disabled'}`}
-                      onClick={() => { unlockBeer(beer.id); playSfx('unlock'); burstConfetti('small'); }} disabled={coins < beer.unlockCost}>
+                      onClick={() => { unlockBeer(beer.id); playSfx('unlock'); burstConfetti('small'); spillBeer('small'); }} disabled={coins < beer.unlockCost}>
                       🪙 {formatNumber(beer.unlockCost)}
                     </button>
                   )}
@@ -340,7 +355,7 @@ function AchievementsTab() {
               </div>
               <div className="achievement-rewards">
                 {ready ? (
-                  <button className="buy-btn" onClick={() => { claimAchievement(a.id); playSfx('achievement'); burstConfetti('medium'); }}>Claim!</button>
+                  <button className="buy-btn" onClick={() => { claimAchievement(a.id); playSfx('achievement'); burstConfetti('medium'); cheers(); }}>Claim!</button>
                 ) : !claimed ? (
                   <div className="reward-preview">
                     {a.reward > 0 && <span>🪙{formatNumber(a.reward)}</span>}
@@ -454,7 +469,7 @@ function ShopTab() {
         <h3>⭐ Prestige</h3>
         <p className="info-text">Earn 10M lifetime coins to prestige. +10% permanent earnings each time. Keeps achievements, recipes, rooms & gems.</p>
         <button className={`prestige-btn ${canPrestige ? '' : 'disabled'}`}
-          onClick={() => { if (canPrestige && confirm('Reset progress for permanent +10% earnings? (Achievements, recipes, rooms & gems are kept)')) { prestige(); playSfx('prestige'); prestigeConfetti(); screenShake(450); } }}
+          onClick={() => { if (canPrestige && confirm('Reset progress for permanent +10% earnings? (Achievements, recipes, rooms & gems are kept)')) { prestige(); playSfx('prestige'); prestigeConfetti(); screenShake(450); spillBeer('large'); } }}
           disabled={!canPrestige}>
           {canPrestige ? '⭐ Prestige Now!' : 'Need 10M lifetime coins'}
         </button>
