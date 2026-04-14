@@ -10,7 +10,7 @@ import { initSDK, gameplayStart, gameplayStop, showRewardedAd } from './utils/ad
 import { BreweryLoreHost } from './components/BreweryLore';
 import { MuteButton } from './components/MuteButton';
 import { DailyBonus } from './components/DailyBonus';
-import { playSfx } from './utils/audio';
+import { playSfx, initAudio } from './utils/audio';
 import { burstConfetti, prestigeConfetti, screenShake } from './utils/effects';
 import { track } from './utils/analytics';
 import './app.css';
@@ -477,6 +477,7 @@ export default function App() {
   useEffect(() => {
     loadGame();
     track('session_start');
+    initAudio(); // one-shot unlock on first user interaction
     // initSDK() is fire-and-forget; gameplayStart() is safe to call before
     // SDK is ready — it's a no-op until an adapter finishes init.
     initSDK().then(gameplayStart);
