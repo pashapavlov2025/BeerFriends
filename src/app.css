@@ -608,6 +608,109 @@ h3 {
 .screen::-webkit-scrollbar { width: 4px; }
 .screen::-webkit-scrollbar-thumb { background: #3d2a10; border-radius: 2px; }
 
+/* ── Screen shake ── */
+@keyframes shake-kf {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-6px, 2px); }
+  20% { transform: translate(5px, -3px); }
+  30% { transform: translate(-4px, 4px); }
+  40% { transform: translate(4px, -2px); }
+  50% { transform: translate(-3px, 3px); }
+  60% { transform: translate(3px, -3px); }
+  70% { transform: translate(-2px, 2px); }
+  80% { transform: translate(2px, -1px); }
+  90% { transform: translate(-1px, 1px); }
+}
+.app.shake { animation: shake-kf 0.45s ease-out; }
+
+/* ── Daily Bonus modal ── */
+.daily-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 5, 0, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 900;
+  padding: 16px;
+  animation: lore-fade 0.25s ease-out;
+}
+.daily-modal {
+  background: linear-gradient(155deg, #2a1a08, #1a0f00);
+  border: 2px solid #fcd34d;
+  border-radius: 20px;
+  padding: 28px 22px 24px;
+  max-width: 360px;
+  width: 100%;
+  color: #fef3c7;
+  text-align: center;
+  box-shadow: 0 25px 70px rgba(252, 211, 77, 0.3);
+  animation: lore-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.daily-icon {
+  font-size: 64px;
+  line-height: 1;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 16px rgba(252, 211, 77, 0.5));
+}
+.daily-modal h2 {
+  margin: 0 0 6px;
+  font-family: Georgia, serif;
+  color: #fcd34d;
+  font-size: 26px;
+  font-weight: 800;
+}
+.daily-sub {
+  font-size: 14px;
+  color: #d4a574;
+  margin: 0 0 18px;
+}
+.daily-streak {
+  display: inline-block;
+  background: #3d2a10;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fcd34d;
+  margin: 0 0 18px;
+  border: 1px solid #f59e0b;
+}
+.daily-rewards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 18px;
+}
+.daily-reward-row {
+  background: #2a1a08;
+  border: 1px solid #f59e0b;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fef3c7;
+}
+.daily-claim-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #fcd34d, #f59e0b);
+  color: #1a0f00;
+  border: none;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: transform 0.15s, filter 0.15s;
+}
+.daily-claim-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
 /* ── Mute button (floating top-left) ── */
 .mute-btn {
   position: fixed;

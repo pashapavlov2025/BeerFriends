@@ -24,6 +24,9 @@ interface GameState {
   boostMultiplier: number;
   boostEndsAt: number;
   lastOnlineAt: number;
+  // Daily bonus
+  lastDailyAt: number;
+  dailyStreak: number;
   // Achievements
   claimedAchievements: string[];
   // Crafting
@@ -47,6 +50,9 @@ interface GameActions {
   addCoins: (amount: number) => void;
   setBoostMultiplier: (mult: number) => void;
   activateBoost: (mult: number, durationMs: number) => void;
+  // Daily bonus
+  canClaimDaily: () => boolean;
+  claimDaily: () => { coins: number; gems: number; streak: number } | null;
   saveGame: () => void;
   loadGame: () => void;
   resetGame: () => void;
@@ -72,6 +78,7 @@ const initialState: GameState = {
   coins: 0, totalCoins: 0, tapPower: 1, autoBrewRate: 0, beersBrewed: 0,
   upgrades: {}, unlockedBeers: ['lager'], currentBeer: 'lager',
   prestigeLevel: 0, prestigeMultiplier: 1, boostMultiplier: 1, boostEndsAt: 0, lastOnlineAt: Date.now(),
+  lastDailyAt: 0, dailyStreak: 0,
   claimedAchievements: [],
   recipes: [],
   builtRooms: [],
@@ -220,6 +227,32 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     set({ boostMultiplier: mult, boostEndsAt: Date.now() + durationMs });
   },
 
+  // Daily bonus ─ claimable once every 22h+ (slight grace).
+  canClaimDaily: () => {
+    const s = get();
+    const hoursSince = (Date.now() - s.lastDailyAt) / (1000 * 60 * 60);
+    return hoursSince >= 22;
+  },
+
+  claimDaily: () => {
+    const s = get();
+    const now = Date.now();
+    const hoursSince = (now - s.lastDailyAt) / (1000 * 60 * 60);
+    if (hoursSince < 22) return null;
+    // Streak continues if claimed within 48h, else resets.
+    const streak = hoursSince <= 48 ? s.dailyStreak + 1 : 1;
+    const coins = 500 + Math.min(streak, 10) * 500 + s.prestigeLevel * 1000;
+    const gems = 1 + (streak >= 7 ? 2 : 0);
+    set({
+      coins: s.coins + coins,
+      totalCoins: s.totalCoins + coins,
+      gems: s.gems + gems,
+      lastDailyAt: now,
+      dailyStreak: Math.min(streak, 30),
+    });
+    return { coins, gems, streak: Math.min(streak, 30) };
+  },
+
   // Achievements
   claimAchievement: (id: string) => {
     const s = get();
@@ -320,6 +353,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       beersBrewed: s.beersBrewed, upgrades: s.upgrades, unlockedBeers: s.unlockedBeers,
       currentBeer: s.currentBeer, prestigeLevel: s.prestigeLevel, prestigeMultiplier: s.prestigeMultiplier,
       boostMultiplier: s.boostMultiplier, boostEndsAt: s.boostEndsAt, lastOnlineAt: Date.now(),
+      lastDailyAt: s.lastDailyAt, dailyStreak: s.dailyStreak,
       claimedAchievements: s.claimedAchievements,
       recipes: s.recipes,
       builtRooms: s.builtRooms,
